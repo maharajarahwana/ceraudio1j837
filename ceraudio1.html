@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>ceraudio1</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>ceraudio1</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ujian EPS-TOPIK - 30 Soal</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --warning: #f1c40f;
+            --danger: #e74c3c;
+            --light: #f4f7f6;
+            --active-border: #8e44ad; /* Warna Ungu */
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--light);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #quiz-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        #main-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        @media (max-width: 800px) {
+            #main-container { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        #timer { font-size: 1.5rem; font-weight: bold; color: var(--danger); }
+
+        .question-text { font-size: 1.2rem; margin-bottom: 20px; line-height: 1.6; }
+
+        .options-container { display: grid; gap: 10px; }
+
+        .option {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background 0.2s;
+        }
+
+        .option.selected { background-color: #e1f5fe; border-color: var(--accent); }
+        .correct-ans { border-color: var(--accent) !important; background-color: #e1f5fe !important; font-weight: bold; }
+        .wrong-ans { border-color: var(--danger) !important; background-color: #fdeaea !important; color: var(--danger); }
+
+        /* Navigation Grid */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .nav-item {
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        /* Border Ungu Tebal untuk nomor yang sedang dikerjakan */
+        .nav-item.active { 
+            border: 4px solid var(--active-border) !important; 
+            transform: scale(1.05);
+            z-index: 2;
+        }
+
+        .nav-item.filled { background-color: #d1d8e0; }
+        
+        /* Nav colors after submit */
+        .nav-correct { background-color: var(--accent) !important; color: white; border-color: var(--accent); }
+        .nav-wrong { background-color: var(--warning) !important; color: black; border-color: var(--warning); }
+
+        .controls { display: flex; justify-content: space-between; margin-top: 20px; }
+        
+        button {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-prev { background: #95a5a6; color: white; }
+        .btn-next { background: var(--accent); color: white; }
+        .btn-submit { background: var(--success); color: white; width: 100%; margin-top: 10px; font-size: 1.1rem; }
+        button:disabled { opacity: 0.3; }
+
+        u { text-underline-offset: 4px; text-decoration-thickness: 2px; }
+    </style>
+</head>
+<body>
+
+<div id="quiz-wrapper">
+    <div class="card" style="text-align: center;">
+        <div id="timer">60:00</div>
+    </div>
+
+    <div id="main-container">
+        <div class="card">
+            <div class="header">
+                <span id="q-label" style="font-weight:bold; color:var(--primary);">Soal</span>
+            </div>
+<div id="q-text" class="question-text"></div>
+
+<div id="audio-box" style="margin-bottom:15px;"></div>
+
+<div id="options-box" class="options-container"></div>            
+            <div class="controls">
+                <button class="btn-prev" id="prev-btn" onclick="move(-1)">Sebelumnya</button>
+                <button class="btn-next" id="next-btn" onclick="move(1)">Berikutnya</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0; font-size: 1rem;">Navigasi Soal</h3>
+            <div class="nav-grid" id="nav-grid"></div>
+            <button class="btn-submit" id="submit-btn" onclick="finish()">SUBMIT</button>
+            <div id="result-box" style="margin-top: 15px; font-weight: bold; text-align: center;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const rawData = [
+{ q: "두 사람은 무엇에 대해 말하고 있습니까?", audio: "audio/1.mp3", a: ["고향", "직업", "이름", "국적"], c: 1 },
+
+{ q: "두 사람은 무엇에 대해 말하고 있습니까?", audio: "audio/2.mp3", a: ["국적", "나이", "물건", "직업"], c: 2 },
+
+{ q: "다음을 듣고 이어지는 말로 가장 알맞은 것을 고르십시오.", audio: "audio/3.mp3", a: ["네, 저는 시장에 자주 가요.", "네, 시장에서 과일을 살 거예요.", "아니요, 시장은 없고 마트는 있어요.", "아니요, 채소는 시장에서 사는 게 좋아요."], c: 2 },
+
+{ q: "다음을 듣고 물음에 알맞은 대답을 고르십시오.", audio: "audio/4.mp3", a: ["유진 씨예요.", "영화를 봐요.", "회사에 안 가요.", "유진 씨를 만나요."], c: 1 },
+
+{ q: "두 사람은 무엇에 대해 말하고 있습니까?", audio: "audio/5.mp3", a: ["날씨", "요일", "음식", "이름"], c: 1 },
+
+{ q: "다음을 듣고 물음에 알맞은 대답을 고르십시오.", audio: "audio/6.mp3", a: ["7시에 먹습니다.", "비빔밥을 먹습니다.", "기숙사에서 먹습니다.", "반장님하고 먹습니다."], c: 2 },
+
+{ q: "다음을 듣고 이어지는 말로 가장 알맞은 것을 고르십시오.", audio: "audio/7.mp3", a: ["지금은 봄이에요.", "저는 가을을 좋아해요.", "3월부터 5월까지예요.", "따뜻하고 꽃이 많이 펴요."], c: 3 },
+
+{ q: "다음을 듣고 이어지는 말로 가장 알맞은 것을 고르십시오.", audio: "audio/8.mp3", a: ["가족은 베트남에 살아요.", "남동생은 지금 게임해요.", "가족은 지금 베트남에 없어요.", "남동생은 없고 오빠가 있어요."], c: 3 },
+
+{ q: "두 사람은 무엇에 대해 말하고 있습니까?", audio: "audio/9.mp3", a: ["운동", "쇼핑", "취미", "음식"], c: 3 },
+
+{ q: "여자는 여기에 왜 왔습니까?", audio: "audio/10.mp3", a: ["바지를 교환하려고", "바지를 환불하려고", "신발을 교환하려고", "신발을 환불하려고"], c: 0 },
+
+{ q: "다음을 듣고 이어지는 말로 가장 알맞은 것을 고르십시오.", audio: "audio/11.mp3", a: ["방이 아주 넓어요.", "창문을 열어 주세요.", "방 청소를 해야 돼요.", "제가 창문을 닦을게요."], c: 3 },
+
+{ q: "다음을 듣고 이어지는 말로 가장 알맞은 것을 고르십시오.", audio: "audio/12.mp3", a: ["회사까지 어떻게 와요?", "내일 일찍 올 수 있어요?", "비가 와서 차가 막혔어요.", "지하철로 갈아타고 왔어요."], c: 2 },
+
+{ q: "다음을 듣고 이어지는 말로 가장 알맞은 것을 고르십시오.", audio: "audio/13.mp3", a: ["기숙사에서 자고 있어요.", "피시방에서 게임을 했어요.", "반장님도 주말 잘 보내세요.", "친구하고 영화 보러 갈 거예요."], c: 3 },
+
+{ q: "다음을 듣고 들은 내용과 관계있는 그림을 고르십시오.", audio: "audio/14.mp3", a: ["1.jpg", "2.jpg", "3.jpg", "4.jpg"], c: 0 },
+
+{ q: "다음을 듣고 이어지는 말로 가장 알맞은 것을 고르십시오.", audio: "audio/15.mp3", a: ["어제 바지를 샀어요.", "잠바를 입고 있어요.", "이 원피스는 좀 작아요.", "파란색 운동화를 좋아해요."], c: 1 },
+
+{ q: "다음을 듣고 이어지는 말로 가장 알맞은 것을 고르십시오.", audio: "audio/16.mp3", a: ["좋아요. 언제 이사했어요?", "네, 저도 집에서 쉴 거예요.", "좋아요. 이번 주말에 갈까요?", "네, 내일 집을 계약할 거예요."], c: 2 },
+
+{ q: "다음을 듣고 이어지는 말로 가장 알맞은 것을 고르십시오.", audio: "audio/17.mp3", a: ["부산은 바다가 아주 유명해요.", "수영을 하러 해수욕장에 갔어요.", "친구들하고 부산에 가려고 해요.", "부산에 갈 때 기차를 타고 갔어요."], c: 2 },
+
+{ q: "다음 중 들은 내용과 같은 것은 무엇입니까?", audio: "audio/18.mp3", a: ["남자는 친구를 만났습니다.", "남자는 콘서트를 봤습니다.", "여자는 남자와 배드민턴을 쳤습니다.", "두 사람은 주말에 같이 밥을 먹었습니다."], c: 0 },
+
+{ q: "두 사람은 무엇에 대해 말하고 있습니까?", audio: "audio/19.mp3", a: ["재료", "가격", "건강", "쇼핑"], c: 0 },
+
+{ q: "다음을 듣고 물음에 알맞은 대답을 고르십시오.", audio: "audio/20.mp3", a: ["2시간 동안 했어요.", "마두 씨하고 같이 했어요.", "어제 저녁에 들어가 봤어요.", "회사 홈페이지에 로그인을 했어요."], c: 2 },
+
+{ q: "두 사람은 무엇에 대해 말하고 있습니까?", audio: "audio/21.mp3", a: ["위치", "색깔", "교통", "증상"], c: 3 },
+
+{ q: "두 사람은 무엇에 대해 말하고 있습니까?", audio: "audio/22.mp3", a: ["치료 횟수", "치료 방법", "치료 시간", "치료 장소"], c: 1 },
+
+{ q: "두 사람은 무엇에 대해 말하고 있습니까?", audio: "audio/23.mp3", a: ["배송 비용", "배송 장소", "배송 조회", "배송 방법"], c: 3 },
+
+{ q: "다음을 듣고 이어지는 말로 가장 알맞은 것을 고르십시오.", audio: "audio/24.mp3", a: ["현금 인출기에서 해 보세요.", "체크 카드를 만들어 보세요.", "은행 앱을 다운로드하세요.", "은행에서 환전할 수 있어요."], c: 2 },
+
+{ q: "다음을 듣고 이어지는 말로 가장 알맞은 것을 고르십시오.", audio: "audio/25.mp3", a: ["상담을 받아 봤어요.", "중급반에서 공부해요.", "무료 진료 서비스도 있어요.", "통역 서비스를 이용해 보세요."], c: 1 },
+
+{ q: "다음 중 들은 내용과 같은 것은 무엇입니까?", audio: "audio/26.mp3", a: ["두 사람은 오늘 결혼식을 했다.", "두 사람은 곧 식사하러 갈 것이다.", "여자는 건강을 위해서 국수를 먹는다.", "남자는 고기보다 국수를 더 좋아한다."], c: 1 },
+
+{ q: "다음 중 들은 내용과 같은 것은 무엇입니까?", audio: "audio/27.mp3", a: ["여자는 남자에게서 꽃을 받았습니다.", "남자는 선생님께 꽃을 드리려고 합니다.", "남자는 스승의 날에 대해 들어 봤습니다.", "여자는 진수 씨에게 마음을 전하고 싶어 합니다."], c: 2 },
+
+{ q: "남자는 왜 여자를 찾아갔습니까?", audio: "audio/28.mp3", a: ["친구를 소개하려고", "윷놀이를 같이 하려고", "새해 인사를 드리려고", "떡국 만드는 법을 물어보려고"], c: 2 },
+
+{ q: "다음 중 들은 내용과 같은 것은 무엇입니까?", audio: "audio/29.mp3", a: ["두 사람은 커피숍에 있습니다.", "남자는 여자에게 휴지를 줬습니다.", "남자는 한국의 식사 예절을 잘 알고 있습니다.", "남자의 고향에서는 식사할 때 코를 풀어도 됩니다."], c: 3 },
+
+{ q: "다음 중 들은 내용과 같은 것은 무엇입니까?", audio: "audio/30.mp3", a: ["여자는 김밥을 가게에서 샀습니다.", "남자는 예전에 김밥을 먹어 봤습니다.", "남자는 김밥 파는 가게를 알고 싶습니다.", "김밥은 외국에서도 인기를 끌고 있습니다."], c: 3 }
+];
+
+let questions = [];
+let userAnswers = new Array(rawData.length).fill(null);
+let currentIdx = 0;
+let isSubmitted = false;
+let timerValue = 60 * 60;
+
+let audioPlayed = new Array(rawData.length).fill(false);
+let currentAudio = null;
+  
+    function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function init() {
+        questions = rawData.map(item => {
+    const options = item.a.map((txt, i) => ({
+        text: txt,
+        correct: i === item.c
+    }));
+
+    return {
+        q: item.q,
+        options: options
+    };
+});
+        
+        renderNav();
+        renderQuestion();
+        startTimer();
+    }
+
+    function renderNav() {
+        const nav = document.getElementById('nav-grid');
+        nav.innerHTML = '';
+        questions.forEach((_, i) => {
+            const item = document.createElement('div');
+            item.className = 'nav-item';
+            item.innerText = i + 1;
+            
+            if (i === currentIdx) item.classList.add('active');
+            if (userAnswers[i] !== null) item.classList.add('filled');
+            
+            if (isSubmitted) {
+                const isCorrect = userAnswers[i] !== null && questions[i].options[userAnswers[i]].correct;
+                item.classList.add(isCorrect ? 'nav-correct' : 'nav-wrong');
+            }
+
+            item.onclick = () => { currentIdx = i; renderQuestion(); renderNav(); };
+            nav.appendChild(item);
+        });
+    }
+
+function renderQuestion() {
+    const q = questions[currentIdx];
+
+    document.getElementById('q-label').innerText =
+        `Soal Nomor ${currentIdx + 1}`;
+
+    const isImage = q.q.includes('.jpg');
+
+    if (isImage) {
+        document.getElementById('q-text').innerHTML =
+            `<img src="assets/img/${q.q}" style="max-width:100%; border-radius:10px;">`;
+    } else {
+        document.getElementById('q-text').innerHTML = q.q;
+    }
+
+    // AUDIO
+    const audioBox = document.getElementById('audio-box');
+    audioBox.innerHTML = '';
+
+    if (rawData[currentIdx].audio) {
+
+        const btn = document.createElement('button');
+
+        btn.innerHTML = audioPlayed[currentIdx]
+            ? '🔒 Audio Sudah Diputar'
+            : '▶ Putar Audio';
+
+        btn.style.background = '#3498db';
+        btn.style.color = 'white';
+        btn.style.marginBottom = '15px';
+
+        btn.disabled = audioPlayed[currentIdx];
+
+        btn.onclick = () => {
+
+            if (audioPlayed[currentIdx]) return;
+
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+
+            currentAudio = new Audio(rawData[currentIdx].audio);
+
+            currentAudio.play();
+
+            audioPlayed[currentIdx] = true;
+
+            btn.disabled = true;
+            btn.innerHTML = '🔒 Audio Sudah Diputar';
+        };
+
+        audioBox.appendChild(btn);
+    }
+
+    const box = document.getElementById('options-box');
+    box.innerHTML = '';
+
+    q.options.forEach((opt, i) => {
+
+        const div = document.createElement('div');
+        div.className = 'option';
+
+        if (userAnswers[currentIdx] === i)
+            div.classList.add('selected');
+
+        if (isSubmitted) {
+
+            if (opt.correct) {
+                div.classList.add('correct-ans');
+            } else if (userAnswers[currentIdx] === i) {
+                div.classList.add('wrong-ans');
+            }
+
+        } else {
+
+            div.onclick = () => {
+                userAnswers[currentIdx] = i;
+                renderQuestion();
+                renderNav();
+            };
+        }
+
+const symbols = ['①', '②', '③', '④'];
+
+if (opt.text.includes('.jpg') ||
+    opt.text.includes('.png') ||
+    opt.text.includes('.jpeg') ||
+    opt.text.includes('.webp')) {
+
+    div.innerHTML = `
+        <div>${symbols[i]}</div>
+        <img src="assets/img/${opt.text}"
+             style="max-width:100%;max-height:180px;border-radius:8px;">
+    `;
+} else {
+    div.innerHTML = `${symbols[i]} ${opt.text}`;
+}
+        box.appendChild(div);
+    });
+
+    document.getElementById('prev-btn').disabled =
+        currentIdx === 0;
+
+    document.getElementById('next-btn').disabled =
+        currentIdx === rawData.length - 1;
+}
+
+    function move(step) {
+        currentIdx += step;
+        renderQuestion();
+        renderNav();
+    }
+
+    function startTimer() {
+        const timerEl = document.getElementById('timer');
+        const interval = setInterval(() => {
+            if (isSubmitted) { clearInterval(interval); return; }
+            let m = Math.floor(timerValue / 60);
+            let s = timerValue % 60;
+            timerEl.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+            if (timerValue <= 0) { clearInterval(interval); finish(); }
+            timerValue--;
+        }, 1000);
+    }
+
+    function finish() {
+        if (isSubmitted) return;
+        if (timerValue > 0 && !confirm("Apakah Anda yakin ingin mensubmit semua jawaban?")) return;
+
+        isSubmitted = true;
+        let correctCount = 0;
+        questions.forEach((q, idx) => {
+            if (userAnswers[idx] !== null && q.options[userAnswers[idx]].correct) correctCount++;
+        });
+
+        const percent = ((correctCount / rawData.length) * 100).toFixed(1);
+        
+        document.getElementById('result-box').innerHTML = `
+            <div style="color:var(--primary); font-size:1.2rem;">Skor Akhir:</div>
+            <div style="font-size:2rem; color:var(--success);">${correctCount} / 30</div>
+            <div style="font-size:1.5rem;">(${percent}%)</div>
+        `;
+
+        document.getElementById('submit-btn').disabled = true;
+        renderQuestion();
+        renderNav();
+    }
+
+    init();
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
